@@ -173,6 +173,7 @@ function PanelGroupWithForwardedRef({
 
   useIsomorphicLayoutEffect(() => {
     committedValuesRef.current.direction = direction;
+    // after register panels, we need to update the committedValuesRef
     committedValuesRef.current.panels = panels;
     committedValuesRef.current.sizes = sizes;
   });
@@ -332,26 +333,15 @@ function PanelGroupWithForwardedRef({
     [activeHandleId, disablePointerEventsDuringResize, sizes]
   );
 
-  const registerPanel = useCallback((id: string, panel: PanelData) => {
-    setPanels((prevPanels) => {
-      if (prevPanels.has(id)) {
-        return prevPanels;
-      }
-
-      const nextPanels = new Map(prevPanels);
-      nextPanels.set(id, panel);
-
-      return nextPanels;
-    });
-  }, []);
-
   const registerResizeHandle = useCallback(
     (handleId: string) => {
       const resizeHandler = (event: ResizeEvent) => {
+        // PanelResizeHandle onMove will call this callback with a ResizeEvent.
         event.preventDefault();
 
         const {
           direction,
+          // ? 
           panels,
           sizes: prevSizes,
         } = committedValuesRef.current;
@@ -440,6 +430,18 @@ function PanelGroupWithForwardedRef({
     },
     [groupId]
   );
+  // 
+  const registerPanel = useCallback((id: string, panel: PanelData) => {
+    setPanels((prevPanels) => {
+      if (prevPanels.has(id)) {
+        return prevPanels;
+      }
+
+      const nextPanels = new Map(prevPanels);
+      nextPanels.set(id, panel);
+      return nextPanels;
+    });
+  }, []);
 
   const unregisterPanel = useCallback((id: string) => {
     setPanels((prevPanels) => {
@@ -620,11 +622,12 @@ function PanelGroupWithForwardedRef({
       registerResizeHandle,
       resizePanel,
       startDragging: (id: string, event: ResizeEvent) => {
+        // 
         setActiveHandleId(id);
 
         if (isMouseEvent(event) || isTouchEvent(event)) {
+          // 通过 id 获取 ResizeHandle 对应的DOM元素
           const handleElement = getResizeHandle(id)!;
-
           initialDragStateRef.current = {
             dragHandleRect: handleElement.getBoundingClientRect(),
             dragOffset: getDragOffset(event, id, direction),

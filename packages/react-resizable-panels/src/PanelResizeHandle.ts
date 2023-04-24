@@ -113,6 +113,7 @@ export function PanelResizeHandle({
     };
 
     const divElement = divElementRef.current!;
+    //  获取当前元素所处的 文档对象
     const targetDocument = divElement.ownerDocument;
 
     targetDocument.body.addEventListener("contextmenu", stopDraggingAndBlur);

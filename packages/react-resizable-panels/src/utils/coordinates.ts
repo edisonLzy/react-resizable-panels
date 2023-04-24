@@ -28,6 +28,7 @@ export function getDragOffset(
 
   let pointerOffset = 0;
   if (isMouseEvent(event)) {
+    // 
     pointerOffset = isHorizontal ? event.clientX : event.clientY;
   } else if (isTouchEvent(event)) {
     const firstTouch = event.touches[0];
