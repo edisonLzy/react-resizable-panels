@@ -239,8 +239,9 @@ function PanelGroupWithForwardedRef({
       setSizes(defaultSizes);
     } else {
       const panelsArray = panelsMapToSortedArray(panels);
-
+      // 表示没有 defaultSize 的panel
       let panelsWithNullDefaultSize = 0;
+      // 表示有 defaultSize 的panel的总和
       let totalDefaultSize = 0;
       let totalMinSize = 0;
 
@@ -341,8 +342,9 @@ function PanelGroupWithForwardedRef({
 
         const {
           direction,
-          // ? 
+          // 通过 registerPanel 注册的panel
           panels,
+          // 当所有的 panel 都注册完毕后，会计算出来的 sizes 的值 
           sizes: prevSizes,
         } = committedValuesRef.current;
 
@@ -356,7 +358,7 @@ function PanelGroupWithForwardedRef({
         if (idBefore == null || idAfter == null) {
           return;
         }
-
+        // 鼠标的移动量
         const movement = getMovement(
           event,
           groupId,

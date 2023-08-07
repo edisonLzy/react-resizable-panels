@@ -37,7 +37,8 @@ function Content() {
           <div className={styles.Centered}>left</div>
         </Panel>
         <ResizeHandle className={styles.ResizeHandle} />
-        <Panel className={styles.PanelRow} minSize={30}>
+        {/* 40 */}
+        <Panel className={styles.PanelRow} minSize={30}> 
           <div className={styles.Centered}>middle</div>
         </Panel>
         <ResizeHandle className={styles.ResizeHandle} />

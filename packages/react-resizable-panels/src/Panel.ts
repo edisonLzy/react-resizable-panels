@@ -132,6 +132,7 @@ function PanelWithForwardedRef({
     unregisterPanel,
   ]);
 
+  // 获取 panel 的 style (according sizes)
   const style = getPanelStyle(panelId);
 
   const committedValuesRef = useRef<{

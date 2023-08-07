@@ -41,10 +41,11 @@ export function getDragOffset(
   const rect =
     initialHandleElementRect || handleElement.getBoundingClientRect();
   const elementOffset = isHorizontal ? rect.left : rect.top;
-
+  // 这里相当于本次的偏移量减去上次的偏移量,就得到的鼠标移动的movementX
   return pointerOffset - elementOffset - initialOffset;
 }
 
+//movementX: 获取 mousemove 事件之间的 delteX
 // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/movementX
 export function getMovement(
   event: ResizeEvent,
@@ -57,6 +58,7 @@ export function getMovement(
 ): number {
   const {
     dragOffset = 0,
+    // 这是在 mousedown 时候的 计算的handle的位置
     dragHandleRect,
     sizes: initialSizes,
   } = initialDragState || {};

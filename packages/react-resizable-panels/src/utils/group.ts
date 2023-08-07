@@ -2,6 +2,8 @@ import { PRECISION } from "../constants";
 import { InitialDragState } from "../PanelGroup";
 import { PanelData, ResizeEvent } from "../types";
 
+// prevSizes [30,40,30];
+// delta 10%
 export function adjustByDelta(
   event: ResizeEvent | null,
   panels: Map<string, PanelData>,
@@ -29,18 +31,21 @@ export function adjustByDelta(
   let deltaApplied = 0;
 
   // A resizing panel affects the panels before or after it.
-  //
+  // 负值意味着 resizer 后面的 panel 应该通过减少其偏移量来立即增长/扩展。
   // A negative delta means the panel immediately after the resizer should grow/expand by decreasing its offset.
   // Other panels may also need to shrink/contract (and shift) to make room, depending on the min weights.
-  //
+  // 正值意味着 resizer 前面的 panel expand
   // A positive delta means the panel immediately before the resizer should "expand".
   // This is accomplished by shrinking/contracting (and shifting) one or more of the panels after the resizer.
 
   // Max-bounds check the panel being expanded first.
   {
+    // [panel1] | [panel2] 
+    // delta < 0 ? panel2 : panel1
     const pivotId = delta < 0 ? idAfter : idBefore;
     const index = panelsArray.findIndex((panel) => panel.id === pivotId);
     const panel = panelsArray[index];
+    // get need expand panel size
     const baseSize = baseSizes[index];
 
     const nextSize = safeResizePanel(panel, Math.abs(delta), baseSize, event);
@@ -51,19 +56,24 @@ export function adjustByDelta(
       if (nextSize === 0 && baseSize > 0) {
         panelSizeBeforeCollapse.set(pivotId, baseSize);
       }
-
+      // 这里的 delta 和 上面的delta 不一样吗 ？
       delta = delta < 0 ? baseSize - nextSize : nextSize - baseSize;
     }
+    
   }
 
+  // the shrink pivot
   let pivotId = delta < 0 ? idBefore : idAfter;
   let index = panelsArray.findIndex((panel) => panel.id === pivotId);
   while (true) {
+    // [30,40 | 30]
+    // 40
     const panel = panelsArray[index];
     const baseSize = baseSizes[index];
 
     const deltaRemaining = Math.abs(delta) - Math.abs(deltaApplied);
 
+    // baseSize - deltaRemaining
     const nextSize = safeResizePanel(
       panel,
       0 - deltaRemaining,
@@ -76,10 +86,11 @@ export function adjustByDelta(
       }
 
       deltaApplied += baseSize - nextSize;
-
+    
       nextSizes[index] = nextSize;
 
       if (
+        // 
         deltaApplied
           .toPrecision(PRECISION)
           .localeCompare(Math.abs(delta).toPrecision(PRECISION), undefined, {
@@ -112,6 +123,8 @@ export function adjustByDelta(
   index = panelsArray.findIndex((panel) => panel.id === pivotId);
   nextSizes[index] = baseSizes[index] + deltaApplied;
 
+  console.log(deltaApplied);
+  
   return nextSizes;
 }
 
@@ -236,10 +249,13 @@ export function getResizeHandlePanelIds(
   handleId: string,
   panelsArray: PanelData[]
 ): [idBefore: string | null, idAfter: string | null] {
+  //
   const handle = getResizeHandle(handleId);
   const handles = getResizeHandlesForGroup(groupId);
+  // 找到 handle 在 handles 中的 位置
   const index = handle ? handles.indexOf(handle) : -1;
-
+  // 获取 handle 前后的 panel id  
+  // [panel] [handle] [panel]
   const idBefore: string | null = panelsArray[index]?.id ?? null;
   const idAfter: string | null = panelsArray[index + 1]?.id ?? null;
 
@@ -290,6 +306,7 @@ function safeResizePanel(
     }
   }
 
+  // Clamp the size to the min/max size
   const nextSize = Math.min(
     panel.maxSize,
     Math.max(panel.minSize, nextSizeUnsafe)
