@@ -31,10 +31,12 @@ export function adjustByDelta(
   let deltaApplied = 0;
 
   // A resizing panel affects the panels before or after it.
+
   // 负值意味着 resizer 后面的 panel 应该通过减少其偏移量来立即增长/扩展。
   // A negative delta means the panel immediately after the resizer should grow/expand by decreasing its offset.
   // Other panels may also need to shrink/contract (and shift) to make room, depending on the min weights.
-  // 正值意味着 resizer 前面的 panel expand
+
+  // 正值意味着 resizer 前面的 panel expand, 通过 收缩 resizer 后面对一个或者多个panel 来实现 
   // A positive delta means the panel immediately before the resizer should "expand".
   // This is accomplished by shrinking/contracting (and shifting) one or more of the panels after the resizer.
 
@@ -122,8 +124,6 @@ export function adjustByDelta(
   pivotId = delta < 0 ? idAfter : idBefore;
   index = panelsArray.findIndex((panel) => panel.id === pivotId);
   nextSizes[index] = baseSizes[index] + deltaApplied;
-
-  console.log(deltaApplied);
   
   return nextSizes;
 }
@@ -194,7 +194,7 @@ export function getFlexGrow(
   if (size == null) {
     return "0";
   }
-
+  // toPrecision() 方法以指定的精度返回该数值对象的字符串表示。
   return size.toPrecision(PRECISION);
 }
 

@@ -140,6 +140,7 @@ function PanelGroupWithForwardedRef({
   });
 
   // 0-1 values representing the relative size of each panel.
+  // 记录着每一个 panel 的大小
   const [sizes, setSizes] = useState<number[]>([]);
 
   // Used to support imperative collapse/expand API.
@@ -297,21 +298,9 @@ function PanelGroupWithForwardedRef({
 
   const getPanelStyle = useCallback(
     (id: string): CSSProperties => {
+      // sizes 会导致 getPanelStyle变化, 从而导致 Panel 重新渲染
+
       const { panels } = committedValuesRef.current;
-
-      // Before mounting, Panels will not yet have registered themselves.
-      // This includes server rendering.
-      // At this point the best we can do is render everything with the same size.
-      if (panels.size === 0) {
-        return {
-          flexBasis: "auto",
-          flexGrow: 1,
-          flexShrink: 1,
-
-          // Without this, Panel sizes may be unintentionally overridden by their content.
-          overflow: "hidden",
-        };
-      }
 
       const flexGrow = getFlexGrow(panels, id, sizes);
 
@@ -358,7 +347,8 @@ function PanelGroupWithForwardedRef({
         if (idBefore == null || idAfter == null) {
           return;
         }
-        // 鼠标的移动量
+        // 鼠标的移动量: 以开始拖拽的位置为基准，移动了多少 
+        // initialDragStateRef: 在 startDragging 时，会记录下鼠标的位置
         const movement = getMovement(
           event,
           groupId,
@@ -371,13 +361,13 @@ function PanelGroupWithForwardedRef({
         if (movement === 0) {
           return;
         }
-
+        // 计算偏移量占 groupElement 的比例
         const groupElement = getPanelGroup(groupId)!;
         const rect = groupElement.getBoundingClientRect();
         const isHorizontal = direction === "horizontal";
         const size = isHorizontal ? rect.width : rect.height;
         const delta = (movement / size) * 100;
-
+        // 🔥 
         const nextSizes = adjustByDelta(
           event,
           panels,
@@ -421,7 +411,7 @@ function PanelGroupWithForwardedRef({
         if (sizesChanged) {
           // If resize change handlers have been declared, this is the time to call them.
           callPanelCallbacks(panelsArray, prevSizes, nextSizes);
-
+          // setSizes 会触发 useLayoutEffect，从而触发 Panel 的重新渲染
           setSizes(nextSizes);
         }
 
@@ -561,6 +551,7 @@ function PanelGroupWithForwardedRef({
   }, []);
 
   const resizePanel = useCallback((id: string, nextSize: number) => {
+    
     const { panels, sizes: prevSizes } = committedValuesRef.current;
 
     const panel = panels.get(id);
